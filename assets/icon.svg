@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <defs>
+    <linearGradient id="background" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#2bb58f"/>
+      <stop offset="1" stop-color="#11706b"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="14" fill="url(#background)"/>
+  <!-- A virtual machine as a box: top, left and right faces. -->
+  <path fill="#ffffff" d="M32 11 51 21 32 31 13 21z"/>
+  <path fill="#ffffff" fill-opacity="0.78" d="M13 24.5 30.5 33.6V54L13 44.6z"/>
+  <path fill="#ffffff" fill-opacity="0.55" d="M51 24.5 33.5 33.6V54L51 44.6z"/>
+</svg>

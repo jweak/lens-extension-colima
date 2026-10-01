@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 600" width="1200" height="600">
+  <defs>
+    <linearGradient id="background" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#15896f"/>
+      <stop offset="1" stop-color="#0b2f3a"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="600" fill="url(#background)"/>
+
+  <!-- The box, large, on the left. -->
+  <g transform="translate(285 300)">
+    <path fill="#ffffff" d="M0-150 130-82 0-14-130-82z"/>
+    <path fill="#ffffff" fill-opacity="0.78" d="M-130-58-12 3V150L-130 88z"/>
+    <path fill="#ffffff" fill-opacity="0.55" d="M130-58 12 3V150L130 88z"/>
+  </g>
+
+  <text x="505" y="255" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="92" font-weight="700" fill="#ffffff">Colima</text>
+  <text x="509" y="315" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="34" fill="#ffffff" fill-opacity="0.85">Start local Kubernetes clusters</text>
+  <text x="509" y="357" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="34" fill="#ffffff" fill-opacity="0.85">straight from Lens</text>
+
+  <!-- Two profiles, one running. -->
+  <g font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="24" fill="#ffffff">
+    <circle cx="521" cy="420" r="8" fill="#5ee6a8"/>
+    <text x="541" y="428">k8s</text>
+    <text x="635" y="428" fill-opacity="0.7">Running</text>
+    <circle cx="521" cy="460" r="8" fill="#ffffff" fill-opacity="0.45"/>
+    <text x="541" y="468">default</text>
+    <text x="635" y="468" fill-opacity="0.7">Stopped</text>
+  </g>
+</svg>

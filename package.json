@@ -1,0 +1,76 @@
+{
+  "name": "@k8slens/colima",
+  "version": "0.1.0",
+  "description": "Start, stop and create Colima Kubernetes clusters right from Lens: every profile in the navigator, a dashboard of what runs, and its cluster one click away.",
+  "keywords": [
+    "lens-extension",
+    "colima",
+    "kubernetes",
+    "k3s",
+    "local-kubernetes",
+    "docker",
+    "containerd"
+  ],
+  "license": "MIT",
+  "author": "Juho Heikka <jheikka@mirantis.com>",
+  "homepage": "https://github.com/jweak/lens-extension-colima#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jweak/lens-extension-colima.git"
+  },
+  "bugs": {
+    "url": "https://github.com/jweak/lens-extension-colima/issues"
+  },
+  "type": "commonjs",
+  "main": "./dist/index.js",
+  "files": [
+    "dist",
+    "assets",
+    "README.md",
+    "CHANGELOG.md"
+  ],
+  "lensExtension": {
+    "icon": "assets/icon.svg",
+    "banner": "assets/banner.svg"
+  },
+  "scripts": {
+    "build": "lens-types-check && lens-package-build --entry-point ./src/index.ts",
+    "clean": "rimraf dist/"
+  },
+  "dependencies": {
+    "@k8slens/badge": "^3.0.0",
+    "@k8slens/cli-contracts": "^1.0.2",
+    "@k8slens/cluster-contracts": "^2.2.0",
+    "@k8slens/command-palette-contracts": "^1.0.2",
+    "@k8slens/drop-down-menu-contracts": "^2.2.2",
+    "@k8slens/drop-down-menu-items": "^1.1.3",
+    "@k8slens/electron-contracts": "^1.0.4",
+    "@k8slens/element-components": "^3.9.0",
+    "@k8slens/feature-core": "^7.5.2",
+    "@k8slens/icon": "^4.0.0",
+    "@k8slens/injectable": "^26.2.1",
+    "@k8slens/input-components": "^1.0.1",
+    "@k8slens/kubernetes-resources-contracts": "^1.0.0",
+    "@k8slens/main-view-contracts": "^1.3.2",
+    "@k8slens/modal-components": "^1.2.0",
+    "@k8slens/modal-contracts": "^1.0.2",
+    "@k8slens/navigation-contracts": "^1.0.0",
+    "@k8slens/navigator-components": "^1.0.3",
+    "@k8slens/navigator-contracts": "^2.0.2",
+    "@k8slens/notifications-contracts": "^1.0.2",
+    "@k8slens/status-bar-contracts": "^1.0.2",
+    "@k8slens/stylesheet-contracts": "^1.0.0",
+    "@k8slens/tab-contracts": "^1.2.0",
+    "@k8slens/terminal-contracts": "^0.1.1",
+    "@k8slens/use-inject": "^1.0.2",
+    "mobx": "^6.15.0",
+    "mobx-react": "^9.2.1",
+    "react": "^19.2.0"
+  },
+  "devDependencies": {
+    "@k8slens/package-build": "^3.0.0",
+    "@k8slens/typescript": "^8.0.0",
+    "@types/react": "^19.2.0",
+    "rimraf": "^4.4.1"
+  }
+}
