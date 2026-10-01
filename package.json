@@ -1,6 +1,6 @@
 {
   "name": "@k8slens/colima",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Start, stop and create Colima Kubernetes clusters right from Lens: every profile in the navigator, a dashboard of what runs, and its cluster one click away.",
   "keywords": [
     "lens-extension",

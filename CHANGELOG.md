@@ -2,6 +2,12 @@
 
 What changed in each version of this extension, newest first.
 
+## 0.1.1
+
+- The dashboard's profile table gives each column the room its values need, and shortens them with "…" only once the window is too narrow for them.
+- The Marketplace banner's text is larger, so it reads on the card.
+- Larger, clearer screenshots in the README.
+
 ## 0.1.0
 
 - A Colima item in the navigator holds a Dashboard and your Colima profiles, with whether each is running and Start and Stop on each row.

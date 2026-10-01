@@ -173,61 +173,71 @@ const SummaryCards = observer(() => {
 
 // ——— The profiles, as a table ———
 
-// Shares of the row each column takes, the same in the header and every row, so they line up.
-const columns = { name: 3, status: 2, cluster: 3, runtime: 2, cpus: 1, memory: 1.5, disk: 1.5 } as const;
+/*
+ * One grid for the header and every row, so the columns line up without being told their widths:
+ * each data column is as wide as what it holds, they share whatever room is left, and they shorten
+ * to "…" only once there is no room left at all, a cell clipping its text being as narrow as a
+ * cell can be. The actions are as wide as the widest row's, so every row's buttons line up.
+ */
+const tableGrid = {
+  display: "grid",
+  gridTemplateColumns: "max-content repeat(7, auto) max-content",
+  alignItems: "center",
+} as const;
 
-// Wide enough for Open cluster, Stop and the two icon buttons, so every row's actions line up.
-const actionsWidth = { width: "calc(var(--unit) * 62)" };
-const statusIconWidth = { width: "calc(var(--unit) * 6)" };
+// A row's band across the grid: a rule under it, or what colima says of the profile beneath it.
+const fullWidth = { gridColumn: "1 / -1" } as const;
+const fromName = { gridColumn: "2 / -1" } as const;
 
-const Cell = ({ share, children, color = "grey20" }: {
-  readonly share: number;
-  readonly children: ReactNode;
-  readonly color?: Color;
-}) => (
-  <Span $flexChild={share} $color={color} $font={{ noWrap: true, textOverflow: "ellipsis" }} $padding={{ left: "s", right: "s" }}>
+const rule = { bottom: { width: "xxs", color: "grey60" } } as const;
+
+const Rule = () => <Div $style={fullWidth} $border={rule} />;
+
+const Cell = ({ children, color = "grey20" }: { readonly children: ReactNode; readonly color?: Color }) => (
+  <Span
+    $color={color}
+    $font={{ noWrap: true, textOverflow: "ellipsis" }}
+    $padding={{ horizontal: "s", vertical: "s" }}
+    $style={{ overflow: "hidden" }}
+  >
     {children}
   </Span>
 );
 
-const HeaderCell = ({ share, children }: { readonly share: number; readonly children?: ReactNode }) => (
+const HeaderCell = ({ children }: { readonly children?: ReactNode }) => (
   <Span
-    $flexChild={share}
     $color="grey10"
-    $font={{ noWrap: true }}
-    $padding={{ left: "s", right: "s" }}
+    $font={{ noWrap: true, textOverflow: "ellipsis" }}
+    $padding={{ horizontal: "s", vertical: "s" }}
     $border={{ left: { width: "xxs", color: "grey60" } }}
+    $style={{ overflow: "hidden" }}
   >
     {children}
   </Span>
 );
 
 const TableHeader = () => (
-  <Div
-    $flex={{ direction: "horizontal", verticalAlign: "center" }}
-    $padding={{ vertical: "s" }}
-    $border={{ top: { width: "xxs", color: "grey60" }, bottom: { width: "xxs", color: "grey60" } }}
-  >
-    <Span $flexChild="fixed" $style={statusIconWidth} />
-    <HeaderCell share={columns.name}>Name</HeaderCell>
-    <HeaderCell share={columns.status}>Status</HeaderCell>
-    <HeaderCell share={columns.cluster}>Cluster</HeaderCell>
-    <HeaderCell share={columns.runtime}>Runtime</HeaderCell>
-    <HeaderCell share={columns.cpus}>CPUs</HeaderCell>
-    <HeaderCell share={columns.memory}>Memory</HeaderCell>
-    <HeaderCell share={columns.disk}>Disk</HeaderCell>
-    <Span $flexChild="fixed" $style={actionsWidth} $border={{ left: { width: "xxs", color: "grey60" } }} />
-  </Div>
+  <>
+    <Rule />
+    <Span />
+    <HeaderCell>Name</HeaderCell>
+    <HeaderCell>Status</HeaderCell>
+    <HeaderCell>Cluster</HeaderCell>
+    <HeaderCell>Runtime</HeaderCell>
+    <HeaderCell>CPUs</HeaderCell>
+    <HeaderCell>Memory</HeaderCell>
+    <HeaderCell>Disk</HeaderCell>
+    <HeaderCell />
+    <Rule />
+  </>
 );
-
-const rowBorder = { bottom: { width: "xxs", color: "grey60" }, exceptLast: true } as const;
 
 // Under a row: what colima is doing with the profile, or why it failed, lined up with the name.
 const RowNote = ({ children }: { readonly children: ReactNode }) => (
   <Div
     $flex={{ direction: "horizontal", gap: "xs", verticalAlign: "center" }}
-    $padding={{ left: "s" }}
-    $style={{ marginLeft: statusIconWidth.width }}
+    $padding={{ left: "s", right: "s", bottom: "s" }}
+    $style={{ ...fromName, minWidth: 0 }}
   >
     {children}
   </Div>
@@ -235,7 +245,7 @@ const RowNote = ({ children }: { readonly children: ReactNode }) => (
 
 const ProgressNote = ({ operation }: { readonly operation: Operation }) => (
   <RowNote>
-    <Span $color="grey25" $font={{ size: "s", noWrap: true, textOverflow: "ellipsis" }}>
+    <Span $color="grey25" $font={{ size: "s", noWrap: true, textOverflow: "ellipsis" }} $style={{ overflow: "hidden" }}>
       {operation.progress ?? `${presentVerbOf(operation.kind)}…`}
     </Span>
   </RowNote>
@@ -264,7 +274,7 @@ const ProfileActions = observer(({ profile }: { readonly profile: ColimaProfile 
   const operation = actions.operationOf(name);
 
   return (
-    <Div $flex={{ gap: "s", verticalAlign: "center", horizontalAlign: "right" }} $flexChild="fixed" $style={actionsWidth}>
+    <Div $flex={{ gap: "s", verticalAlign: "center", horizontalAlign: "right" }} $padding={{ vertical: "xs", left: "s" }}>
       {actions.canOpenCluster(name) && (
         <PrimaryButton
           $disabled={actions.isOpeningCluster(name)}
@@ -305,63 +315,60 @@ const ProfileActions = observer(({ profile }: { readonly profile: ColimaProfile 
 });
 
 const StatusIconCell = ({ children }: { readonly children: ReactNode }) => (
-  <Span $flexChild="fixed" $style={statusIconWidth} $flex={{ horizontalAlign: "center", verticalAlign: "center" }}>
+  <Span $flex={{ horizontalAlign: "center", verticalAlign: "center" }} $padding={{ horizontal: "s" }}>
     {children}
   </Span>
 );
 
-const ProfileRow = observer(({ profile }: { readonly profile: ColimaProfile }) => {
+// A row's cells take their places in the table's grid; the row itself draws nothing.
+const ProfileRow = observer(({ profile, isLast }: { readonly profile: ColimaProfile; readonly isLast: boolean }) => {
   const actions = useInject(profileActionsInjectable)();
   const operation = actions.operationOf(profile.name);
 
   return (
-    <Div $flex={{ direction: "vertical", gap: "xs" }} $padding={{ vertical: "s" }} $border={rowBorder}>
-      <Div $flex={{ direction: "horizontal", verticalAlign: "center" }}>
-        <StatusIconCell>
-          <StatusIcon status={profile.status} operation={operation} />
-        </StatusIconCell>
-        <Cell share={columns.name} color="grey10">
-          {profile.name}
-        </Cell>
-        <Cell share={columns.status} color={operation ? "primary" : statusColorOf(profile.status)}>
-          {operation ? `${presentVerbOf(operation.kind)}…` : profile.status}
-        </Cell>
-        <Cell share={columns.cluster} color={profile.kubernetes ? "grey20" : "grey25"}>
-          {profile.kubernetes ? contextNameOf(profile.name) : "No Kubernetes"}
-        </Cell>
-        <Cell share={columns.runtime}>{profile.runtime ?? "—"}</Cell>
-        <Cell share={columns.cpus}>{profile.cpus ?? "—"}</Cell>
-        <Cell share={columns.memory}>{formatBytes(profile.memory) ?? "—"}</Cell>
-        <Cell share={columns.disk}>{formatBytes(profile.disk) ?? "—"}</Cell>
-        <ProfileActions profile={profile} />
-      </Div>
+    <Div $displayContents>
+      <StatusIconCell>
+        <StatusIcon status={profile.status} operation={operation} />
+      </StatusIconCell>
+      <Cell color="grey10">{profile.name}</Cell>
+      <Cell color={operation ? "primary" : statusColorOf(profile.status)}>
+        {operation ? `${presentVerbOf(operation.kind)}…` : profile.status}
+      </Cell>
+      <Cell color={profile.kubernetes ? "grey20" : "grey25"}>
+        {profile.kubernetes ? contextNameOf(profile.name) : "No Kubernetes"}
+      </Cell>
+      <Cell>{profile.runtime ?? "—"}</Cell>
+      <Cell>{profile.cpus ?? "—"}</Cell>
+      <Cell>{formatBytes(profile.memory) ?? "—"}</Cell>
+      <Cell>{formatBytes(profile.disk) ?? "—"}</Cell>
+      <ProfileActions profile={profile} />
 
       {operation && <ProgressNote operation={operation} />}
       <ErrorNote profile={profile.name} />
+      {!isLast && <Rule />}
     </Div>
   );
 });
 
-const CreatingRow = ({ name, operation }: { readonly name: string; readonly operation: Operation }) => (
-  <Div $flex={{ direction: "vertical", gap: "xs" }} $padding={{ vertical: "s" }} $border={rowBorder}>
-    <Div $flex={{ direction: "horizontal", verticalAlign: "center" }}>
-      <StatusIconCell>
-        <StatusIcon operation={operation} />
-      </StatusIconCell>
-      <Cell share={columns.name} color="grey10">
-        {name}
-      </Cell>
-      <Cell share={columns.status} color="primary">
-        Creating…
-      </Cell>
-      <Cell share={columns.cluster}>{contextNameOf(name)}</Cell>
-      <Cell share={columns.runtime}>—</Cell>
-      <Cell share={columns.cpus}>—</Cell>
-      <Cell share={columns.memory}>—</Cell>
-      <Cell share={columns.disk}>—</Cell>
-      <Span $flexChild="fixed" $style={actionsWidth} />
-    </Div>
+const CreatingRow = ({ name, operation, isLast }: {
+  readonly name: string;
+  readonly operation: Operation;
+  readonly isLast: boolean;
+}) => (
+  <Div $displayContents>
+    <StatusIconCell>
+      <StatusIcon operation={operation} />
+    </StatusIconCell>
+    <Cell color="grey10">{name}</Cell>
+    <Cell color="primary">Creating…</Cell>
+    <Cell>{contextNameOf(name)}</Cell>
+    <Cell>—</Cell>
+    <Cell>—</Cell>
+    <Cell>—</Cell>
+    <Cell>—</Cell>
+    <Span />
     <ProgressNote operation={operation} />
+    {!isLast && <Rule />}
   </Div>
 );
 
@@ -406,13 +413,13 @@ const ProfilesCard = observer(() => {
           </Div>
         </Div>
       ) : (
-        <Div $flex={{ direction: "vertical" }}>
+        <Div $style={tableGrid}>
           <TableHeader />
-          {creating.map(({ name, operation }) => (
-            <CreatingRow key={name} name={name} operation={operation} />
+          {creating.map(({ name, operation }, index) => (
+            <CreatingRow key={name} name={name} operation={operation} isLast={all.length === 0 && index === creating.length - 1} />
           ))}
-          {all.map((profile) => (
-            <ProfileRow key={profile.name} profile={profile} />
+          {all.map((profile, index) => (
+            <ProfileRow key={profile.name} profile={profile} isLast={index === all.length - 1} />
           ))}
         </Div>
       )}
