@@ -4,18 +4,24 @@ import { type ContainerRuntime, colimaOperationsInjectable, type NewProfile } fr
 import { colimaDefaultsInjectable } from "../colima/colima-defaults.injectable";
 import { colimaProfilesInjectable } from "../colima/colima-profiles.injectable";
 import { isValidProfileName } from "../colima/shell";
+import {
+  k3sVersionPattern,
+  newProfileDefaults,
+  newProfileLimits,
+  type Range,
+  rangeText,
+  suggestProfileName,
+} from "../colima/new-profile-rules";
 
 export type NewProfileField = "name" | "cpus" | "memoryGib" | "diskGib" | "kubernetesVersion";
 
-const k3sVersionPattern = /^v\d+\.\d+\.\d+\+k3s\d+$/;
-
-const wholeNumberIn = (text: string, min: number, max: number) => {
+const wholeNumberIn = (text: string, { min, max }: Range) => {
   const value = Number(text);
 
   return /^\d+$/.test(text.trim()) && value >= min && value <= max ? value : undefined;
 };
 
-const numberIn = (text: string, min: number, max: number) => {
+const numberIn = (text: string, { min, max }: Range) => {
   const value = Number(text);
 
   return /^\d+(\.\d+)?$/.test(text.trim()) && value >= min && value <= max ? value : undefined;
@@ -36,27 +42,19 @@ export const newProfileFormInjectable = getInjectable2({
     return () => {
       const fields = observable.map<NewProfileField, string>({
         name: "",
-        cpus: "2",
-        memoryGib: "4",
-        diskGib: "60",
+        cpus: String(newProfileDefaults.cpus),
+        memoryGib: String(newProfileDefaults.memoryGib),
+        diskGib: String(newProfileDefaults.diskGib),
         kubernetesVersion: "",
       });
-      const runtime = observable.box<ContainerRuntime>("docker");
-      const kubernetes = observable.box(true);
+      const runtime = observable.box<ContainerRuntime>(newProfileDefaults.runtime);
+      const kubernetes = observable.box<boolean>(newProfileDefaults.kubernetes);
 
       const nameIsTaken = (name: string) =>
         profiles.byName(name) !== undefined || operations.operationOf(name) !== undefined;
 
       // A name nobody has taken yet, so that the form can be submitted as it opens.
-      const suggestName = () => {
-        for (let index = 1; ; index++) {
-          const name = index === 1 ? "k8s" : `k8s-${index}`;
-
-          if (!nameIsTaken(name)) {
-            return name;
-          }
-        }
-      };
+      const suggestName = () => suggestProfileName(nameIsTaken);
 
       const valueOf = (field: NewProfileField) => fields.get(field) ?? "";
 
@@ -70,16 +68,16 @@ export const newProfileFormInjectable = getInjectable2({
           found.name = `There is a profile called "${name}" already.`;
         }
 
-        if (wholeNumberIn(valueOf("cpus"), 1, 64) === undefined) {
-          found.cpus = "1 to 64";
+        if (wholeNumberIn(valueOf("cpus"), newProfileLimits.cpus) === undefined) {
+          found.cpus = rangeText(newProfileLimits.cpus);
         }
 
-        if (numberIn(valueOf("memoryGib"), 1, 512) === undefined) {
-          found.memoryGib = "1 to 512";
+        if (numberIn(valueOf("memoryGib"), newProfileLimits.memoryGib) === undefined) {
+          found.memoryGib = rangeText(newProfileLimits.memoryGib);
         }
 
-        if (wholeNumberIn(valueOf("diskGib"), 10, 4096) === undefined) {
-          found.diskGib = "10 to 4096";
+        if (wholeNumberIn(valueOf("diskGib"), newProfileLimits.diskGib) === undefined) {
+          found.diskGib = rangeText(newProfileLimits.diskGib);
         }
 
         const version = valueOf("kubernetesVersion").trim();

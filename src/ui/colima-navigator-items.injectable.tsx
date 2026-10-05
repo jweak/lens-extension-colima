@@ -11,7 +11,7 @@ import {
 } from "@k8slens/navigator-components";
 import {
   getNavigatorItemKind,
-  getNavigatorItemKindInjectableBunch,
+  getNavigatorItemKindInjectableBunch2,
   type NavigatorItemProps,
   navigatorRootKind,
   useItemIsOpen,
@@ -53,8 +53,9 @@ export const profileNavigatorItemKind = getNavigatorItemKind<ProfileNavigatorIte
   "colima-profile",
 );
 
+// What a click does is in each kind's `activate` below, where Lens reaches it from a click and
+// from going to the item alike; the rows only draw.
 const ColimaRow = ({ kind, ids }: NavigatorItemProps<ColimaNavigatorItem, typeof navigatorRootKind>) => {
-  const navigateToColima = useInject(navigateToColimaInjectable)();
   const isOpen = useItemIsOpen(kind, ...ids);
 
   return (
@@ -63,29 +64,20 @@ const ColimaRow = ({ kind, ids }: NavigatorItemProps<ColimaNavigatorItem, typeof
       <NavigatorItemIcon>
         <ColimaIcon $size={navigatorItemIconSize} />
       </NavigatorItemIcon>
-      <NavigatorItemLabel onClick={() => void navigateToColima()} $tooltip="Start, stop and create Colima clusters">
-        Colima
-      </NavigatorItemLabel>
+      <NavigatorItemLabel $tooltip="Start, stop and create Colima clusters">Colima</NavigatorItemLabel>
     </>
   );
 };
 
-// Always the Colima tab, whatever the profiles are doing: a running profile's own row opens its cluster.
-const DashboardRow = (_props: NavigatorItemProps<DashboardNavigatorItem, typeof colimaNavigatorItemKind>) => {
-  const navigateToColima = useInject(navigateToColimaInjectable)();
-
-  return (
-    <>
-      <NavigatorLeafIndicator />
-      <NavigatorItemIcon>
-        <DashboardIcon $size={navigatorItemIconSize} />
-      </NavigatorItemIcon>
-      <NavigatorItemLabel onClick={() => void navigateToColima()} $tooltip="Every Colima profile, and a new one">
-        Dashboard
-      </NavigatorItemLabel>
-    </>
-  );
-};
+const DashboardRow = (_props: NavigatorItemProps<DashboardNavigatorItem, typeof colimaNavigatorItemKind>) => (
+  <>
+    <NavigatorLeafIndicator />
+    <NavigatorItemIcon>
+      <DashboardIcon $size={navigatorItemIconSize} />
+    </NavigatorItemIcon>
+    <NavigatorItemLabel $tooltip="Every Colima profile, and a new one">Dashboard</NavigatorItemLabel>
+  </>
+);
 
 // The one thing done to a profile most often, right on its row: start it, or stop it.
 const ProfileQuickAction = observer(({ profile }: { readonly profile: string }) => {
@@ -111,12 +103,9 @@ const ProfileQuickAction = observer(({ profile }: { readonly profile: string }) 
 });
 
 const ProfileRow = observer(({ item }: NavigatorItemProps<ProfileNavigatorItem, typeof colimaNavigatorItemKind>) => {
-  const navigateToColima = useInject(navigateToColimaInjectable)();
   const actions = useInject(profileActionsInjectable)();
   const profile = actions.profileOf(item.name);
   const operation = actions.operationOf(item.name);
-
-  const openProfile = () => (actions.canOpenCluster(item.name) ? actions.openCluster(item.name) : void navigateToColima());
 
   return (
     <>
@@ -125,7 +114,6 @@ const ProfileRow = observer(({ item }: NavigatorItemProps<ProfileNavigatorItem, 
         <StatusIcon status={profile?.status} operation={operation} />
       </NavigatorItemIcon>
       <NavigatorItemLabel
-        onClick={openProfile}
         $tooltip={
           operation
             ? `${presentVerbOf(operation.kind)} ${item.name}…`
@@ -150,7 +138,7 @@ const colimaItems = computed((): ColimaNavigatorItem[] =>
 const dashboardItems = computed((): DashboardNavigatorItem[] => [{ id: "dashboard", name: "Dashboard", orderNumber: 0 }]);
 
 export const colimaNavigatorItems = getInjectableBunch({
-  colima: getNavigatorItemKindInjectableBunch({
+  colima: getNavigatorItemKindInjectableBunch2({
     kind: colimaNavigatorItemKind,
     parentKind: navigatorRootKind,
     description: "Colima, near the bottom of the navigator: the Colima profiles on this machine.",
@@ -159,10 +147,17 @@ export const colimaNavigatorItems = getInjectableBunch({
       instantiate: () => async () => colimaItems,
     },
 
+    activate: {
+      instantiate: (di) => {
+        const navigateToColima = di.inject(navigateToColimaInjectable)();
+
+        return () => navigateToColima();
+      },
+    },
     Component: ColimaRow,
   }),
 
-  dashboard: getNavigatorItemKindInjectableBunch({
+  dashboard: getNavigatorItemKindInjectableBunch2({
     kind: dashboardNavigatorItemKind,
     parentKind: colimaNavigatorItemKind,
     description: "Colima's dashboard, first under Colima in the navigator: every profile, and creating a new one.",
@@ -171,10 +166,17 @@ export const colimaNavigatorItems = getInjectableBunch({
       instantiate: () => async () => dashboardItems,
     },
 
+    activate: {
+      instantiate: (di) => {
+        const navigateToColima = di.inject(navigateToColimaInjectable)();
+
+        return () => navigateToColima();
+      },
+    },
     Component: DashboardRow,
   }),
 
-  profiles: getNavigatorItemKindInjectableBunch({
+  profiles: getNavigatorItemKindInjectableBunch2({
     kind: profileNavigatorItemKind,
     parentKind: colimaNavigatorItemKind,
     description: "Each Colima profile under Colima in the navigator, with whether it is running.",
@@ -191,6 +193,18 @@ export const colimaNavigatorItems = getInjectableBunch({
               orderNumber: (index + 1) * 10,
             })),
           );
+      },
+    },
+
+    // A running profile's row opens its cluster, where it sits in the navigator; any other row
+    // opens the Colima tab, where the profile can be started.
+    activate: {
+      instantiate: (di) => {
+        const actions = di.inject(profileActionsInjectable)();
+        const navigateToColima = di.inject(navigateToColimaInjectable)();
+
+        return (_colimaId, profile) =>
+          actions.canOpenCluster(profile) ? actions.openCluster(profile) : navigateToColima();
       },
     },
 

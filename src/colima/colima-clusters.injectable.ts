@@ -1,7 +1,11 @@
-import { allClusterRecordsReactiveInjectionToken, type ClusterRecord } from "@k8slens/cluster-contracts";
+import {
+  allClusterRecordsReactiveInjectionToken,
+  type ClusterRecord,
+  clusterNavigatorItemKind,
+} from "@k8slens/cluster-contracts";
 import { getInjectable2 } from "@k8slens/injectable";
-import { navigateToPodsInjectionToken } from "@k8slens/kubernetes-resources-contracts";
 import { isNavigationSupersededError } from "@k8slens/navigation-contracts";
+import { navigateToNavigatorPlaceInjectionToken } from "@k8slens/navigator-contracts";
 import { showErrorNotificationInjectionToken } from "@k8slens/notifications-contracts";
 import { computed, type IComputedValue, observable, runInAction } from "mobx";
 import { colimaProfilesInjectable } from "./colima-profiles.injectable";
@@ -14,11 +18,15 @@ import { contextNameOf, errorText, profileOfContextName } from "./shell";
  */
 export const colimaClustersInjectable = getInjectable2({
   id: "colima-clusters",
-  consumptions: [allClusterRecordsReactiveInjectionToken, navigateToPodsInjectionToken, showErrorNotificationInjectionToken],
+  consumptions: [
+    allClusterRecordsReactiveInjectionToken,
+    navigateToNavigatorPlaceInjectionToken,
+    showErrorNotificationInjectionToken,
+  ],
 
   instantiate: (di) => {
     const allClusterRecords = di.inject(allClusterRecordsReactiveInjectionToken);
-    const navigateToPods = di.inject(navigateToPodsInjectionToken)();
+    const navigateToNavigatorPlace = di.inject(navigateToNavigatorPlaceInjectionToken)();
     const showErrorNotification = di.inject(showErrorNotificationInjectionToken)();
     const profiles = di.inject(colimaProfilesInjectable)();
 
@@ -32,6 +40,41 @@ export const colimaClustersInjectable = getInjectable2({
 
     const clusterOf = (profile: string) => byName.get().get(contextNameOf(profile));
 
+    /**
+     * Takes the user to the profile's cluster where it sits in the navigator, under Local
+     * Kubeconfigs, and activates it as a click on it would: Lens connects the cluster, opens it,
+     * and its resources are right there in the tree to browse. Rejects, saying why, when there is
+     * no such cluster or Lens could not open it.
+     */
+    const goTo = async (profile: string) => {
+      const cluster = clusterOf(profile);
+
+      if (!cluster) {
+        throw new Error(
+          `Lens has no cluster called "${contextNameOf(profile)}" yet. Start the profile with Kubernetes enabled, and Lens picks the cluster up from your kubeconfig.`,
+        );
+      }
+
+      runInAction(() => opening.set(profile));
+
+      try {
+        await navigateToNavigatorPlace({ kind: clusterNavigatorItemKind, ids: [cluster.id], activate: true });
+      } catch (error) {
+        // The user went somewhere else before the cluster was shown: not a failure.
+        if (!isNavigationSupersededError(error)) {
+          throw new Error(`Lens could not open ${cluster.name.get()}: ${errorText(error)}`);
+        }
+      } finally {
+        runInAction(() => {
+          if (opening.get() === profile) {
+            opening.set(undefined);
+          }
+        });
+      }
+
+      return cluster;
+    };
+
     return () => ({
       clusterOf,
 
@@ -44,33 +87,14 @@ export const colimaClustersInjectable = getInjectable2({
 
       isOpening: (profile: string) => opening.get() === profile,
 
-      /** Takes the user into the profile's cluster, connecting it on the way. */
+      goTo,
+
+      /** Like `goTo`, for a button: what goes wrong is shown to the user rather than rejected. */
       open: async (profile: string) => {
-        const cluster = clusterOf(profile);
-
-        if (!cluster) {
-          showErrorNotification(
-            `Lens has no cluster called "${contextNameOf(profile)}" yet. Start the profile with Kubernetes enabled, and Lens picks the cluster up from your kubeconfig.`,
-          );
-
-          return;
-        }
-
-        runInAction(() => opening.set(profile));
-
         try {
-          await navigateToPods({ clusterId: cluster.id, namespaces: "all" });
+          await goTo(profile);
         } catch (error) {
-          // The user went somewhere else before the cluster was shown: not a failure.
-          if (!isNavigationSupersededError(error)) {
-            showErrorNotification(`Lens could not open ${cluster.name.get()}: ${errorText(error)}`);
-          }
-        } finally {
-          runInAction(() => {
-            if (opening.get() === profile) {
-              opening.set(undefined);
-            }
-          });
+          showErrorNotification(errorText(error));
         }
       },
     });

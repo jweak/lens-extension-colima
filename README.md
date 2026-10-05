@@ -2,23 +2,28 @@
 
 **Your local Kubernetes clusters, one click from running.**
 
-Stop dropping into a terminal to type `colima start`. Colima for Lens puts every [Colima](https://github.com/abiosoft/colima) profile on your machine right inside Lens: start it, watch it boot, and step straight into its cluster without typing a single command.
+Stop dropping into a terminal to type `colima start`. Colima for Lens puts every [Colima](https://github.com/abiosoft/colima) profile on your machine right inside Lens: start it, watch it boot, and step straight into its cluster without typing a single command. Or don't click at all, and ask Ask AI to do it for you.
 
 ![The Colima dashboard in Lens: every profile, whether it runs, its cluster and resources, with Start, Stop and Open cluster](assets/screenshots/dashboard.png)
 
 ## Why you'll want it
 
-- **From stopped to inside the cluster in one click.** Press **Start**, follow Colima's progress on the row, and the moment k3s is up Lens offers to open the cluster. No context juggling, no waiting at a prompt.
+- **From stopped to inside the cluster in one click.** Press **Start**, follow Colima's progress on the row, and the moment k3s is up Lens offers to open the cluster. It opens right in the navigator, under *Local Kubeconfigs*, connected and expanded, so its workloads, config and the rest are one click away. No context juggling, no waiting at a prompt.
 - **Everything at a glance.** Which profiles run, which clusters are up, and how many CPUs and GiB your VMs are holding on to, on one dashboard.
 - **A fresh cluster from a form, not a list of flags.** Name it, size it, pick the runtime and the Kubernetes version, prefilled with the one Colima defaults to, and press **Create and start**.
 - **Right where you already are.** Right-click a Colima cluster in Lens's cluster list and start or stop its VM in place.
+- **Or just ask.** In any Ask AI conversation, say "stop the VM of this cluster" or "make me a Colima cluster with Kubernetes 1.33", and it is done.
 - **Feels like part of Lens.** Built from Lens's own components: it follows your theme, lives in the navigator, and answers to the command palette.
+
+## Install
+
+Open [Colima for Lens in Lens](https://app.k8slens.dev/lens-launcher?c=lens%3A%2F%2Fapp%2Fopen%2Fextension%3Fname%3D@k8slens/colima) to see it there and install it, or find it under **Extensions > Browse Marketplace**.
 
 ## From zero to cluster
 
 1. Open **Colima** near the bottom of the navigator, and click **Dashboard**.
 2. Press **New profile**, keep the defaults or tune them, and press **Create and start**.
-3. Watch Colima work on the profile's row. When it is up, press **Open cluster**.
+3. Watch Colima work on the profile's row. When it is up, press **Open cluster**: Lens takes you to the cluster in the navigator, under *Local Kubeconfigs*, connected and open, with its resources right there to browse.
 
 ![Creating a profile: its name, Kubernetes version, CPUs, memory, disk, container runtime and whether to run Kubernetes](assets/screenshots/new-profile.png)
 
@@ -26,13 +31,26 @@ Already have profiles? They are there the moment you install: nothing to import,
 
 ## Everything it does
 
-- **Colima in the navigator.** A *Colima* item holds a *Dashboard* and every profile on your machine, with whether it is running. Hover a profile for Start or Stop, click a running one to open its cluster, or right-click it to start, stop, open a shell in its VM or delete it.
+- **Colima in the navigator.** A *Colima* item holds a *Dashboard* and every profile on your machine, with whether it is running. Hover a profile for Start or Stop, click a running one to open its cluster where it sits under *Local Kubeconfigs*, or right-click it to start, stop, open a shell in its VM or delete it.
 - **The dashboard.** Every profile, running or not, with its status, cluster, runtime, CPUs, memory and disk, and Start, Stop, Open cluster, Shell and Delete buttons. Above them, how many profiles run, how many clusters are up, and what the running VMs take. While a profile starts, its row shows what Colima is doing.
 - **Start and stop from the cluster itself.** Right-click a cluster Colima made (`colima`, `colima-<profile>`) and pick **Start Colima VM** or **Stop Colima VM**.
 - **New profiles.** CPUs, memory, disk, Docker or containerd, and Kubernetes on or off, with the version of your choice.
 - **A shell in the VM.** **Shell** opens a Lens terminal inside the profile's virtual machine.
 - **Status bar.** The bottom right shows how many profiles run, and what is starting or stopping.
 - **Command palette.** *Colima: Manage profiles* and *Colima: Create a Kubernetes cluster*.
+
+## Ask AI
+
+From any Ask AI conversation in Lens, you can also ask:
+
+- Which Colima profiles you have, whether each is running, what it is doing and how big it is: "which of my Colima clusters are running?"
+- To start or stop a profile, by its name or as the cluster you are talking about: "start my eso profile", "stop the VM of this cluster".
+- For a new profile, sized and versioned as you say: "make me a Colima cluster with 4 CPUs and Kubernetes 1.33".
+- To open the Colima dashboard.
+- To open a running profile's cluster, where it sits under *Local Kubeconfigs*.
+- To open a shell in a profile's VM.
+
+Deleting a profile stays with the dashboard and the right-click menu, where Lens asks you first.
 
 ## Requirements
 
