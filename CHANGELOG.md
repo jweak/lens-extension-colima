@@ -7,6 +7,7 @@ What changed in each version of this extension, newest first.
 - Ask AI can drive Colima from any conversation: list your profiles and what they are doing, start, stop and create them, and open the dashboard, a profile's cluster or a shell in its VM.
 - Opening a profile's cluster, from its row in the navigator, the dashboard, the right-click menu or the notification once it starts, now takes you to the cluster under *Local Kubeconfigs* in the navigator, connected and open, so its resources are right there to browse. Before, it landed you on the cluster's pods list.
 - The Colima, Dashboard and profile rows in the navigator are on Lens's current navigator API, so going to one of them from elsewhere in Lens does what a click on it does.
+- The Colima item in the navigator shows its name alone, without the Colima logo.
 
 ## 0.1.1
 

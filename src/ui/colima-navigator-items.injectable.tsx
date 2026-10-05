@@ -22,7 +22,6 @@ import { observer } from "mobx-react";
 import { colimaProfilesInjectable } from "../colima/colima-profiles.injectable";
 import { isWindows } from "../colima/platform";
 import { presentVerbOf } from "../colima/colima-operations.injectable";
-import { ColimaIcon } from "./colima-icon";
 import { StatusIcon } from "./colima-page";
 import { navigateToColimaInjectable } from "./colima-navigation.injectable";
 import { profileActionsInjectable } from "./profile-actions.injectable";
@@ -61,9 +60,6 @@ const ColimaRow = ({ kind, ids }: NavigatorItemProps<ColimaNavigatorItem, typeof
   return (
     <>
       <NavigatorBranchIndicator isOpen={isOpen} />
-      <NavigatorItemIcon>
-        <ColimaIcon $size={navigatorItemIconSize} />
-      </NavigatorItemIcon>
       <NavigatorItemLabel $tooltip="Start, stop and create Colima clusters">Colima</NavigatorItemLabel>
     </>
   );
